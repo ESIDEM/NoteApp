@@ -1,5 +1,6 @@
 package com.xtremepixel.noteapp.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -24,6 +26,7 @@ import com.xtremepixel.noteapp.component.NoteButton
 import com.xtremepixel.noteapp.component.NoteInputField
 import com.xtremepixel.noteapp.data.NoteDataSource
 import com.xtremepixel.noteapp.model.Note
+import com.xtremepixel.noteapp.utils.formatDate
 import java.time.format.DateTimeFormatter
 
 @Composable
@@ -40,6 +43,8 @@ fun NoteScreen(
     var description by remember {
         mutableStateOf("")
     }
+
+    val context = LocalContext.current
 
     Column(modifier = Modifier.padding(6.dp)) {
         TopAppBar(title = {
@@ -79,8 +84,15 @@ fun NoteScreen(
                     if (
                         title.isNotEmpty() && description.isNotEmpty()
                     ) {
+                        onAddNote(
+                            Note(
+                                title = title, description = description
+                            )
+                        )
                         title = ""
                         description = ""
+                        Toast.makeText(context, "Your Note has been saved", Toast.LENGTH_LONG)
+                            .show()
                     }
                 })
 
@@ -89,7 +101,9 @@ fun NoteScreen(
             LazyColumn {
 
                 items(items = note) { note ->
-                    NoteItem(note = note, onNoteClick = {})
+                    NoteItem(note = note, onNoteClick = {
+                        onDeleteNote(note)
+                    })
                 }
             }
 
@@ -115,13 +129,15 @@ fun NoteItem(
     ) {
         Column(
             modifier
-                .clickable { }
+                .clickable {
+                    onNoteClick(note)
+                }
                 .padding(horizontal = 14.dp, vertical = 6.dp),
             horizontalAlignment = Alignment.Start) {
             Text(text = note.title, style = MaterialTheme.typography.subtitle2)
             Text(text = note.description, style = MaterialTheme.typography.subtitle1)
             Text(
-                text = note.entryDate.format(DateTimeFormatter.ofPattern("EEE, d MMM")),
+                text = formatDate(note.entryDate.time),
                 style = MaterialTheme.typography.subtitle1
             )
 
